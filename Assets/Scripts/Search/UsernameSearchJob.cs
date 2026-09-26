@@ -3,7 +3,7 @@ using Unity.Collections;
 using Unity.Jobs;
 
 [BurstCompile]
-public class UsernameSearchJob : IJobParallelFor
+public struct UsernameSearchJob : IJobParallelFor
 {
     [ReadOnly] public NativeArray<LeaderboardEntry> Entries;
     [ReadOnly] public FixedString64Bytes Query;

@@ -22,7 +22,7 @@ public class ItemSlot : MonoBehaviour
         Rect = GetComponent<RectTransform>();
     }
 
-    public void SetData(int index, int id, string username, int score)
+    public void SetData(int index, int id, string username, long score)
     {
         indexText.SetText(index.ToString());
         idText.SetText(id.ToString());

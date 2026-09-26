@@ -4,6 +4,8 @@ public sealed class ItemContainer
 {
     private readonly ItemSlot[] items;
 
+    public static bool IsInitialized { get; private set; } = false;
+
     public ItemContainer(ItemSlot prefab, RectTransform content, int poolSize)
     {
         items = new ItemSlot[poolSize];
@@ -16,9 +18,11 @@ public sealed class ItemContainer
 
             items[i] = item;
         }
+
+        IsInitialized = true;
     }
 
-    public void SetItem(int poolIndex, int itemIndex, float itemStep, float topPadding, int id, string username, int score)
+    public void SetItem(int poolIndex, int itemIndex, float itemStep, float topPadding, int id, string username, long score)
     {
         if (poolIndex < 0 || poolIndex >= items.Length)
             return;

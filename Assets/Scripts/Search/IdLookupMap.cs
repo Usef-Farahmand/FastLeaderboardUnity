@@ -12,6 +12,11 @@ public struct IdLookupMap : System.IDisposable
         );
     }
 
+    public void Add(int id, int index)
+    {
+        _map.TryAdd(id, index);
+    }
+
     public NativeParallelHashMap<int, int>.ParallelWriter AsParallelWriter()
     {
         return _map.AsParallelWriter();

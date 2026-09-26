@@ -4,6 +4,8 @@ public struct IdLookupMap : System.IDisposable
 {
     private NativeParallelHashMap<int, int> _map;
 
+    public bool IsCreated => _map.IsCreated;
+
     public IdLookupMap(int capacity, Allocator allocator)
     {
         _map = new NativeParallelHashMap<int, int>(

@@ -22,6 +22,7 @@ public sealed class LeaderboardTestController : MonoBehaviour
     private IdLookupMap idLookupMap;
 
     private SearchService searchService;
+    private SortService sortService;
 
     private void Awake()
     {
@@ -42,54 +43,22 @@ public sealed class LeaderboardTestController : MonoBehaviour
         CreateSampleData();
 
         // ---------------------------------------------
-        // ID Lookup Map
+        // Sort Service
         // ---------------------------------------------
 
-        CreateIdLookupMap();
+        sortService = new SortService();
 
-        // ---------------------------------------------
-        // UI Data
-        // ---------------------------------------------
+        sortService.Initialize(entries);
 
-        uiManager.SetData(entries);
+        sortService.Sort();
 
-        // ---------------------------------------------
-        // Initial Results
-        // ---------------------------------------------
-
-        CreateInitialResults();
-
-        uiManager.SetSearchResults(allResults);
-
-        // ---------------------------------------------
-        // Search Service
-        // ---------------------------------------------
-
-        searchService = new SearchService(
-            searchBatchSize
-        );
-
-        searchService.Initialize(
-            entries,
-            idLookupMap
-        );
-
-        // ---------------------------------------------
-        // Events
-        // ---------------------------------------------
-
-        uiManager.SearchRequested += OnSearchRequested;
-        searchService.SearchCompleted += OnSearchCompleted;
-
-        Debug.Log(
-            $"Leaderboard initialized with " +
-            $"{entries.Length:N0} entries."
-        );
+        sortService.SortCompleted += OnSortCompleted;
     }
 
     private void Update()
     {
         searchService?.Update();
+        sortService?.Update();
     }
 
     // ==================================================
@@ -109,11 +78,9 @@ public sealed class LeaderboardTestController : MonoBehaviour
             {
                 Id = i + 1,
 
-                Username = new FixedString64Bytes(
-                    $"Player_{i + 1}"
-                ),
+                Username = new FixedString64Bytes($"Player_{i + 1}"),
 
-                Score = sampleCount - i,
+                Score = i * Random.Range(10, 20),
 
                 OriginalIndex = i
             };
@@ -184,6 +151,53 @@ public sealed class LeaderboardTestController : MonoBehaviour
     }
 
     // ==================================================
+    // Sort
+    // ==================================================
+
+    private void OnSortCompleted()
+    {
+        // ---------------------------------------------
+        // ID Lookup Map
+        // ---------------------------------------------
+
+        CreateIdLookupMap();
+
+        // ---------------------------------------------
+        // UI Data
+        // ---------------------------------------------
+
+        uiManager.SetData(entries);
+
+        // ---------------------------------------------
+        // Initial Results
+        // ---------------------------------------------
+
+        CreateInitialResults();
+
+        uiManager.SetSearchResults(allResults);
+
+        // ---------------------------------------------
+        // Search Service
+        // ---------------------------------------------
+
+        searchService = new SearchService(searchBatchSize);
+
+        searchService.Initialize(entries, idLookupMap);
+
+        // ---------------------------------------------
+        // Events
+        // ---------------------------------------------
+
+        uiManager.SearchRequested += OnSearchRequested;
+        searchService.SearchCompleted += OnSearchCompleted;
+
+        Debug.Log(
+            $"Leaderboard initialized with " +
+            $"{entries.Length:N0} entries."
+        );
+    }
+
+    // ==================================================
     // Cleanup
     // ==================================================
 
@@ -191,38 +205,40 @@ public sealed class LeaderboardTestController : MonoBehaviour
     {
         if (uiManager != null)
         {
-            uiManager.SearchRequested -=
-                OnSearchRequested;
+            uiManager.SearchRequested -= OnSearchRequested;
         }
 
         if (searchService != null)
         {
-            searchService.SearchCompleted -=
-                OnSearchCompleted;
+            searchService.SearchCompleted -= OnSearchCompleted;
 
             searchService.Dispose();
-
             searchService = null;
         }
 
-        if (idLookupMap.Equals(default(IdLookupMap)) == false)
+        if (sortService != null)
+        {
+            sortService.SortCompleted -= OnSortCompleted;
+
+            sortService.Dispose();
+            sortService = null;
+        }
+
+        if (idLookupMap.IsCreated)
         {
             idLookupMap.Dispose();
-
             idLookupMap = default;
         }
 
         if (allResults.IsCreated)
         {
             allResults.Dispose();
-
             allResults = default;
         }
 
         if (entries.IsCreated)
         {
             entries.Dispose();
-
             entries = default;
         }
     }

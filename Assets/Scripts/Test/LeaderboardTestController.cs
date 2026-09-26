@@ -100,10 +100,7 @@ public sealed class LeaderboardTestController : MonoBehaviour
 
         for (int i = 0; i < entries.Length; i++)
         {
-            idLookupMap.Add(
-                entries[i].Id,
-                i
-            );
+            idLookupMap.Add(entries[i].Id, i);
         }
 
         Debug.Log(

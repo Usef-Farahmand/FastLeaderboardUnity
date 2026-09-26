@@ -14,8 +14,6 @@ public class IdLookupMapTests : MonoBehaviour
     [SerializeField]
     private int LookupPlayerId;
 
-    private readonly FileReader fileReader = new();
-
     [ContextMenu("Load, Parse, Sort And Test Lookup")]
     public async void LoadParseSortAndTestLookup()
     {
@@ -32,7 +30,7 @@ public class IdLookupMapTests : MonoBehaviour
             // 1. Read CSV
             // ---------------------------------
 
-            fileBytes = await fileReader.ReadAsync(path);
+            fileBytes = await FileReader.ReadAsync(path);
 
             Debug.Log($"CSV loaded: {fileBytes.Length:N0} bytes");
 

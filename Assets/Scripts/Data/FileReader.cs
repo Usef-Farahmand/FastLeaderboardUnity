@@ -2,9 +2,9 @@ using System.IO;
 using Unity.Collections;
 using UnityEngine;
 
-public sealed class FileReader
+public static class FileReader
 {
-    public async Awaitable<NativeArray<byte>> ReadAsync(string path)
+    public static async Awaitable<NativeArray<byte>> ReadAsync(string path)
     {
         byte[] bytes = await File.ReadAllBytesAsync(path);
 

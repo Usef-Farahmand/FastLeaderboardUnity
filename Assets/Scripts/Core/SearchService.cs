@@ -6,7 +6,6 @@ using UnityEngine;
 public sealed class SearchService : IDisposable
 {
     private NativeArray<LeaderboardEntry> entries;
-    private IdLookupMap idLookupMap;
 
     private NativeList<int> results;
 
@@ -16,9 +15,6 @@ public sealed class SearchService : IDisposable
     private bool searchRunning;
 
     private string pendingQuery;
-
-    private int pendingId;
-    private bool pendingHasId;
 
     private readonly int batchSize;
 
@@ -37,12 +33,11 @@ public sealed class SearchService : IDisposable
     // Initialize
     // =========================================================
 
-    public void Initialize(NativeArray<LeaderboardEntry> sourceEntries, IdLookupMap sourceIdLookup)
+    public void Initialize(NativeArray<LeaderboardEntry> sourceEntries)
     {
         CompleteSearch();
 
         entries = sourceEntries;
-        idLookupMap = sourceIdLookup;
 
         initialized = entries.IsCreated;
     }
@@ -56,7 +51,6 @@ public sealed class SearchService : IDisposable
         if (!initialized)
         {
             Debug.LogWarning("LeaderboardSearchService: Service is not initialized.");
-
             return;
         }
 
@@ -77,28 +71,35 @@ public sealed class SearchService : IDisposable
 
         results = new NativeList<int>(Mathf.Max(1, entries.Length), Allocator.Persistent);
 
-        // Empty query = show everything
         if (string.IsNullOrWhiteSpace(query))
         {
             AddAllResults();
-
             SearchCompleted?.Invoke(results);
-
             return;
         }
 
-        pendingHasId = int.TryParse(query, out pendingId);
-
-        var job = new UsernameSearchJob
+        if (int.TryParse(query, out int searchId))
         {
-            Entries = entries,
+            var idJob = new IdSearchJob
+            {
+                Entries = entries,
+                Query = searchId,
+                Results = results.AsParallelWriter()
+            };
 
-            Query = new FixedString64Bytes(query),
+            searchHandle = idJob.Schedule(entries.Length, batchSize);
+        }
+        else
+        {
+            var usernameJob = new UsernameSearchJob
+            {
+                Entries = entries,
+                Query = new FixedString64Bytes(query),
+                Results = results.AsParallelWriter()
+            };
 
-            Results = results.AsParallelWriter()
-        };
-
-        searchHandle = job.Schedule(entries.Length, batchSize);
+            searchHandle = usernameJob.Schedule(entries.Length, batchSize);
+        }
 
         searchRunning = true;
     }
@@ -120,20 +121,6 @@ public sealed class SearchService : IDisposable
         searchRunning = false;
 
         // ---------------------------------------------
-        // Add ID result
-        // ---------------------------------------------
-
-        if (pendingHasId)
-        {
-            if (idLookupMap.TryGetIndex(pendingId, out int idIndex))
-            {
-                AddResultIfMissing(idIndex);
-            }
-        }
-
-        pendingHasId = false;
-
-        // ---------------------------------------------
         // Notify UI
         // ---------------------------------------------
 
@@ -146,7 +133,6 @@ public sealed class SearchService : IDisposable
         if (pendingQuery != null)
         {
             string query = pendingQuery;
-
             pendingQuery = null;
 
             StartSearch(query);
@@ -163,17 +149,6 @@ public sealed class SearchService : IDisposable
         {
             results.Add(i);
         }
-    }
-
-    private void AddResultIfMissing(int index)
-    {
-        for (int i = 0; i < results.Length; i++)
-        {
-            if (results[i] == index)
-                return;
-        }
-
-        results.Add(index);
     }
 
     private void DisposeResults()
@@ -211,10 +186,8 @@ public sealed class SearchService : IDisposable
         DisposeResults();
 
         entries = default;
-        idLookupMap = default;
 
         pendingQuery = null;
-        pendingHasId = false;
 
         initialized = false;
     }

@@ -19,7 +19,6 @@ public class Manager : MonoBehaviour
 
     private NativeArray<LeaderboardEntry> entries;
     private NativeList<int> allResults;
-    private IdLookupMap idLookupMap;
 
     #region Unity Callbacks
 
@@ -33,23 +32,14 @@ public class Manager : MonoBehaviour
         }
 
         // ---------------------------------------------
-        // 1-5. Load Data
+        // 1-4. Load Data
         // ---------------------------------------------
 
         loadService = new LoadService();
-        var result = await loadService.LoadAndParse(path);
-
-        if (!result.IsValid)
-        {
-            Debug.LogError("Failed to load or parse entries.");
-            return;
-        }
-
-        this.entries = result.Entries;
-        this.idLookupMap = result.IdLookupMap;
+        entries = await loadService.LoadAndParse(path);
 
         // ---------------------------------------------
-        // 6. Sort Service
+        // 5. Sort Service
         // ---------------------------------------------
 
         sortService = new SortService();
@@ -86,12 +76,6 @@ public class Manager : MonoBehaviour
             sortService = null;
         }
 
-        if (idLookupMap.IsCreated)
-        {
-            idLookupMap.Dispose();
-            idLookupMap = default;
-        }
-
         if (allResults.IsCreated)
         {
             allResults.Dispose();
@@ -126,7 +110,7 @@ public class Manager : MonoBehaviour
     private void OnSortCompleted()
     {
         // ---------------------------------
-        // 7. Initialize UI
+        // 6. Initialize UI
         // ---------------------------------
         uiManager.SetData(entries);
 
@@ -134,10 +118,10 @@ public class Manager : MonoBehaviour
         uiManager.SetSearchResults(allResults);
 
         // ---------------------------------
-        // 8. Search Searvice
+        // 7. Search Searvice
         // ---------------------------------
         searchService = new SearchService(searchBatchSize);
-        searchService.Initialize(entries, idLookupMap);
+        searchService.Initialize(entries);
 
         uiManager.SearchRequested += OnSearchRequested;
         searchService.SearchCompleted += OnSearchCompleted;

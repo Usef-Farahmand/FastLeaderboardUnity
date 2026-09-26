@@ -11,8 +11,6 @@ public struct ParseLineJob : IJobParallelFor
 
     [WriteOnly] public NativeArray<LeaderboardEntry> Output;
 
-    public NativeParallelHashMap<int, int>.ParallelWriter IdToIndex;
-
     public void Execute(int index)
     {
         // Skip CSV header.
@@ -66,8 +64,6 @@ public struct ParseLineJob : IJobParallelFor
             Score = score,
             OriginalIndex = index
         };
-
-        IdToIndex.TryAdd(id, index);
     }
 
     private int ParseInt(int start, int end)

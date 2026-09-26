@@ -7,7 +7,7 @@ public struct UsernameSearchJob : IJobParallelFor
 {
     [ReadOnly] public NativeArray<LeaderboardEntry> Entries;
     [ReadOnly] public FixedString64Bytes Query;
-    public NativeList<int>.ParallelWriter Results;
+    [WriteOnly] public NativeList<int>.ParallelWriter Results;
 
     public void Execute(int index)
     {

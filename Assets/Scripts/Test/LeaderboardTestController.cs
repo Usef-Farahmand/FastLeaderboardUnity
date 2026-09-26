@@ -19,8 +19,6 @@ public sealed class LeaderboardTestController : MonoBehaviour
 
     private NativeList<int> allResults;
 
-    private IdLookupMap idLookupMap;
-
     private SearchService searchService;
     private SortService sortService;
 
@@ -88,28 +86,6 @@ public sealed class LeaderboardTestController : MonoBehaviour
     }
 
     // ==================================================
-    // ID Lookup
-    // ==================================================
-
-    private void CreateIdLookupMap()
-    {
-        idLookupMap = new IdLookupMap(
-            entries.Length,
-            Allocator.Persistent
-        );
-
-        for (int i = 0; i < entries.Length; i++)
-        {
-            idLookupMap.Add(entries[i].Id, i);
-        }
-
-        Debug.Log(
-            $"ID lookup map created: " +
-            $"{entries.Length:N0} entries."
-        );
-    }
-
-    // ==================================================
     // Initial Results
     // ==================================================
 
@@ -154,12 +130,6 @@ public sealed class LeaderboardTestController : MonoBehaviour
     private void OnSortCompleted()
     {
         // ---------------------------------------------
-        // ID Lookup Map
-        // ---------------------------------------------
-
-        CreateIdLookupMap();
-
-        // ---------------------------------------------
         // UI Data
         // ---------------------------------------------
 
@@ -179,7 +149,7 @@ public sealed class LeaderboardTestController : MonoBehaviour
 
         searchService = new SearchService(searchBatchSize);
 
-        searchService.Initialize(entries, idLookupMap);
+        searchService.Initialize(entries);
 
         // ---------------------------------------------
         // Events
@@ -219,12 +189,6 @@ public sealed class LeaderboardTestController : MonoBehaviour
 
             sortService.Dispose();
             sortService = null;
-        }
-
-        if (idLookupMap.IsCreated)
-        {
-            idLookupMap.Dispose();
-            idLookupMap = default;
         }
 
         if (allResults.IsCreated)

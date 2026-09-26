@@ -4,28 +4,13 @@ using UnityEngine;
 
 public sealed class LoadService
 {
-    public readonly struct LoadResult
-    {
-        public readonly NativeArray<LeaderboardEntry> Entries;
-        public readonly IdLookupMap IdLookupMap;
-
-        public LoadResult(NativeArray<LeaderboardEntry> entries, IdLookupMap idLookupMap)
-        {
-            Entries = entries;
-            IdLookupMap = idLookupMap;
-        }
-
-        public bool IsValid => Entries.IsCreated && Entries.Length > 0;
-    }
-
-    public async Awaitable<LoadResult> LoadAndParse(string path)
+    public async Awaitable<NativeArray<LeaderboardEntry>> LoadAndParse(string path)
     {
         NativeArray<byte> fileBytes = default;
         NativeList<int> lineStartOffsets = default;
         NativeList<int> lineLengths = default;
 
         NativeArray<LeaderboardEntry> entries = default;
-        IdLookupMap idLookupMap = default;
 
         try
         {
@@ -75,27 +60,20 @@ public sealed class LoadService
 
 
             // ---------------------------------
-            // 4. Create ID lookup map
-            // ---------------------------------
-            idLookupMap = new IdLookupMap(recordCount, Allocator.Persistent);
-
-            // ---------------------------------
-            // 5. Parse CSV
+            // 4. Parse CSV
             // ---------------------------------
             var parseJob = new ParseLineJob
             {
                 FileBytes = fileBytes,
                 LineStartOffsets = lineStartOffsets.AsArray(),
                 LineLengths = lineLengths.AsArray(),
-                Output = entries,
-                // Build HashMap
-                IdToIndex = idLookupMap.AsParallelWriter()
+                Output = entries
             };
 
             JobHandle parseHandle = parseJob.Schedule(recordCount, 64);
             parseHandle.Complete();
 
-            return new LoadResult(entries, idLookupMap);
+            return entries;
         }
         catch (System.Exception exception)
         {
@@ -103,7 +81,6 @@ public sealed class LoadService
             Debug.LogException(exception);
 
             if (entries.IsCreated) entries.Dispose();
-            if (idLookupMap.IsCreated) idLookupMap.Dispose();
 
             return default;
         }

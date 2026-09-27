@@ -30,8 +30,8 @@ public sealed class LoadService
             // ---------------------------------
             // 2. Find line offsets
             // ---------------------------------
-            lineStartOffsets = new NativeList<int>(Allocator.TempJob);
-            lineLengths = new NativeList<int>(Allocator.TempJob);
+            lineStartOffsets = new NativeList<int>(Allocator.Persistent);
+            lineLengths = new NativeList<int>(Allocator.Persistent);
 
             var findLinesJob = new FindLineOffsetsJob
             {
@@ -41,7 +41,7 @@ public sealed class LoadService
             };
 
             JobHandle findLinesHandle = findLinesJob.Schedule();
-            findLinesHandle.Complete();
+            await WaitForJobAsync(findLinesHandle);
 
             Debug.Log($"Lines found: {lineStartOffsets.Length:N0}");
 
@@ -71,7 +71,7 @@ public sealed class LoadService
             };
 
             JobHandle parseHandle = parseJob.Schedule(recordCount, 64);
-            parseHandle.Complete();
+            await WaitForJobAsync(parseHandle);
 
             return entries;
         }
@@ -94,6 +94,19 @@ public sealed class LoadService
 
             if (fileBytes.IsCreated)
                 fileBytes.Dispose();
+        }
+    }
+
+    private static async Awaitable WaitForJobAsync(JobHandle handle)
+    {
+        try
+        {
+            while (!handle.IsCompleted)
+                await Awaitable.NextFrameAsync();
+        }
+        finally
+        {
+            handle.Complete();
         }
     }
 }

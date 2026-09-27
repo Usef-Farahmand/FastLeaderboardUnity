@@ -44,6 +44,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 684abb55f18c68a4a8c37a9578353896, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Manager
-  path: Assets/StreamingAssets/leaderboard-test.csv
-  uiManager: {fileID: 0}
+  path: Assets/StreamingAssets/leaderboard.csv
   searchBatchSize: 64

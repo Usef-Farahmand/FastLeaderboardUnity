@@ -1,5 +1,7 @@
 # Leaderboard 1M Records — خلاصه فنی
 
+![Unity Profiler و Game View لیدربورد حین جستجو](./search_screenshot.png)
+
 ## Load و Parse
 
 فایل CSV با `FileReader.ReadAsync` (بر پایه‌ی `File.ReadAllBytesAsync`) به‌صورت Async خونده و در یک `NativeArray<byte>` کپی می‌شه. یک `FindLineOffsetsJob` (`IJob`, Burst) یک‌بار کل بافر رو اسکن می‌کنه و ابتدا/طول هر خط رو پیدا می‌کنه. سپس `ParseLineJob` (`IJobParallelFor`, Burst, batch size ۶۴) هر خط رو مستقیم روی بایت‌ها Parse می‌کنه — بدون `string.Split` — و نتیجه در `NativeArray<LeaderboardEntry>` با `Allocator.Persistent` می‌ریزه. انتظار برای تکمیل هر دو Job با `Awaitable.NextFrameAsync` (نه `Complete()` مستقیم) انجام می‌شه تا Main Thread هیچ فریمی بلاک نشه.

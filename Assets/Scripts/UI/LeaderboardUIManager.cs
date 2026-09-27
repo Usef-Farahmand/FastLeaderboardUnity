@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class LeaderboardUIManager : MonoBehaviour
 {
+    private static LeaderboardUIManager instance;
+    public static LeaderboardUIManager Instance => instance;
+
     [Header("Search")]
     [SerializeField]
     private SearchInput searchInput;
@@ -11,6 +14,18 @@ public class LeaderboardUIManager : MonoBehaviour
     [Header("List")]
     [SerializeField]
     private ItemScrollView scrollView;
+
+    private void Awake()
+    {
+        if (instance != null && instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        instance = this;
+        DontDestroyOnLoad(this);
+    }
 
     public event Action<string> SearchRequested
     {

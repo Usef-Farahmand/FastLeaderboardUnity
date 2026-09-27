@@ -7,7 +7,6 @@ public class Manager : MonoBehaviour
     private string path;
 
     [Header("UI")]
-    [SerializeField]
     private LeaderboardUIManager uiManager;
 
     [Header("Services")]
@@ -22,11 +21,12 @@ public class Manager : MonoBehaviour
 
     #region Unity Callbacks
 
-    private async void Awake()
+    private async void Start()
     {
+        uiManager = LeaderboardUIManager.Instance;
         if (uiManager == null)
         {
-            Debug.LogError("LeaderboardTestController: UI Manager is not assigned.");
+            Debug.LogError("Manager: LeaderboardUIManager instance not found.");
             enabled = false;
             return;
         }

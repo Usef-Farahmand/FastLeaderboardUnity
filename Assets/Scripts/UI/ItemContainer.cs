@@ -35,7 +35,7 @@ public sealed class ItemContainer
 
         rect.anchoredPosition = new Vector2(rect.anchoredPosition.x, y);
 
-        item.SetData(itemIndex, id, username, score);
+        item.SetData(itemIndex+1, id, username, score);
 
         item.gameObject.SetActive(true);
     }
